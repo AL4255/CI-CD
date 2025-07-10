@@ -1,0 +1,5 @@
+veriosn: '3.8'
+
+services:
+jenkins:
+  imagie: jenkins/jenkins:lts
