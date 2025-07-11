@@ -1,5 +1,8 @@
 Security CI/CD Pipeline Project
+
+
 Overview
+
 This project demonstrates an automated security-focused CI/CD pipeline that integrates security scanning directly into the development workflow. The system automatically scans code for vulnerabilities and blocks deployment if critical security issues are found.
 What This Project Does
 Automated Security Pipeline:
