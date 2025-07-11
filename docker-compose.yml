@@ -1,5 +1,38 @@
-veriosn: '3.8'
+version: '3.8'
 
-services:
+serives:
+ 
+  #Jenkins server
 jenkins:
-  imagie: jenkins/jenkins:lts
+  imagies: jenkins/jenkins:lts 
+  contaier_name: jenkins 
+  port: "8080:8080"
+volumes: 
+  - jenkins_home:/var/jenkins_home
+  - /var/run/docker.sock:/var/run/docker.sock
+environment:
+  - JENKINS_OPTS=--httpPort=8080
+network:
+  - security-pipeline
+restart: unless-stopped
+
+  #zap security scanner 
+
+zap:
+  imagie: owasp/zap2docker-stable 
+  container_name: zap
+command:  zap.sh -daemon -host 0.0.0.0 - port 8090 -config api.addrs.addr.name=* -config api.addrs.addr.regex=true 
+
+ports:
+  - "8081:5000"
+networks: 
+  - security-pipeline
+restart: unless-stopped 
+
+
+vulnerable-app:
+  build:  ./apps/vulnerable-app
+  contianer_name: vulnerable-app 
+
+  ports: 
+    - "8081"
