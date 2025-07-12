@@ -1,38 +1,55 @@
-version: '3.8'
+services:
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: jenkins
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - JENKINS_OPTS=--httpPort=8080
+    networks:
+      - pipeline
+    restart: unless-stopped
 
-serives:
- 
-  #Jenkins server
-jenkins:
-  imagies: jenkins/jenkins:lts 
-  contaier_name: jenkins 
-  port: "8080:8080"
-volumes: 
-  - jenkins_home:/var/jenkins_home
-  - /var/run/docker.sock:/var/run/docker.sock
-environment:
-  - JENKINS_OPTS=--httpPort=8080
-network:
-  - security-pipeline
-restart: unless-stopped
+  zap:
+    image: zaproxy/zap-stable
+    container_name: zap
+    command: zap.sh -daemon -host 0.0.0.0 -port 8090 -config api.addrs.addr.name=.* -config api.addrs.addr.regex=true
+    ports:
+      - "8090:8090"
+    networks:
+      - pipeline
+    restart: unless-stopped
 
-  #zap security scanner 
+  webapp:
+    build: ./apps/vulnerable-app
+    container_name: webapp
+    ports:
+      - "8081:5000"
+    networks:
+      - pipeline
+    restart: unless-stopped
 
-zap:
-  imagie: owasp/zap2docker-stable 
-  container_name: zap
-command:  zap.sh -daemon -host 0.0.0.0 - port 8090 -config api.addrs.addr.name=* -config api.addrs.addr.regex=true 
+  postgres:
+    image: postgres:13
+    container_name: postgres
+    environment:
+      POSTGRES_DB: jenkins
+      POSTGRES_USER: jenkins
+      POSTGRES_PASSWORD: jenkins123
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - pipeline
+    restart: unless-stopped
 
-ports:
-  - "8081:5000"
-networks: 
-  - security-pipeline
-restart: unless-stopped 
+volumes:
+  jenkins_home:
+  postgres_data:
 
-
-vulnerable-app:
-  build:  ./apps/vulnerable-app
-  contianer_name: vulnerable-app 
-
-  ports: 
-    - "8081"
+networks:
+  pipeline:
+    driver: bridge
